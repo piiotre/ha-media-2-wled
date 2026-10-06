@@ -32,59 +32,46 @@ from .const import (
     DEFAULT_STOP_WHEN_IDLE,
     DEFAULT_TRANSITION,
     DOMAIN,
-    PROTOCOLS,
 )
 from .wled_api import async_get_info
 
-SOURCE_SELECTOR = selector.EntitySelector(
-    selector.EntitySelectorConfig(domain=["media_player", "image", "camera"])
+PROTOCOL_OPTIONS = [
+    selector.SelectOptionDict(value="ddp", label="DDP (port 4048, recommended)"),
+    selector.SelectOptionDict(value="drgb", label="DRGB / DNRGB (port 21324)"),
+    selector.SelectOptionDict(value="drgbw", label="DRGBW (port 21324, RGBW max 367 LEDs)"),
+    selector.SelectOptionDict(value="warls", label="WARLS (port 21324, max 255 LEDs)"),
+]
+
+STEP_USER_DATA_SCHEMA = vol.Schema(
+    {
+        vol.Required(CONF_HOST): selector.TextSelector(),
+        vol.Optional(CONF_NAME): selector.TextSelector(),
+        vol.Optional(CONF_SOURCE_ENTITY): selector.EntitySelector(
+            selector.EntitySelectorConfig(domain=["media_player", "image", "camera"])
+        ),
+        vol.Required(CONF_PROTOCOL, default=DEFAULT_PROTOCOL): selector.SelectSelector(
+            selector.SelectSelectorConfig(
+                options=PROTOCOL_OPTIONS,
+                mode=selector.SelectSelectorMode.DROPDOWN,
+            )
+        ),
+        vol.Optional(CONF_PORT, default=0): selector.NumberSelector(
+            selector.NumberSelectorConfig(min=0, max=65535, mode=selector.NumberSelectorMode.BOX)
+        ),
+        vol.Optional(CONF_NUM_LEDS, default=DEFAULT_NUM_LEDS): selector.NumberSelector(
+            selector.NumberSelectorConfig(min=0, max=4096, mode=selector.NumberSelectorMode.BOX)
+        ),
+    }
 )
-PROTOCOL_SELECTOR = selector.SelectSelector(
-    selector.SelectSelectorConfig(
-        options=PROTOCOLS,
-        translation_key="protocol",
-        mode=selector.SelectSelectorMode.DROPDOWN,
-    )
-)
-
-
-def _box(min_v: float, max_v: float, step: float, unit: str | None = None) -> selector.NumberSelector:
-    return selector.NumberSelector(
-        selector.NumberSelectorConfig(
-            min=min_v,
-            max=max_v,
-            step=step,
-            mode=selector.NumberSelectorMode.BOX,
-            unit_of_measurement=unit,
-        )
-    )
-
-
-def _device_schema(defaults: dict[str, Any], include_host: bool) -> vol.Schema:
-    fields: dict[Any, Any] = {}
-    if include_host:
-        fields[vol.Required(CONF_HOST, default=defaults.get(CONF_HOST, ""))] = str
-        fields[vol.Optional(CONF_NAME, default=defaults.get(CONF_NAME, ""))] = str
-    src = defaults.get(CONF_SOURCE_ENTITY)
-    fields[
-        vol.Optional(CONF_SOURCE_ENTITY, description={"suggested_value": src} if src else None)
-    ] = SOURCE_SELECTOR
-    fields[vol.Required(CONF_PROTOCOL, default=defaults.get(CONF_PROTOCOL, DEFAULT_PROTOCOL))] = (
-        PROTOCOL_SELECTOR
-    )
-    fields[vol.Optional(CONF_PORT, default=defaults.get(CONF_PORT, 0))] = _box(0, 65535, 1)
-    fields[vol.Optional(CONF_NUM_LEDS, default=defaults.get(CONF_NUM_LEDS, DEFAULT_NUM_LEDS))] = (
-        _box(0, 4096, 1)
-    )
-    return vol.Schema(fields)
 
 
 class WledColorSyncConfigFlow(ConfigFlow, domain=DOMAIN):
-    """Handle a config flow."""
+    """Handle a config flow for WLED Media Color Sync."""
 
     VERSION = 1
 
     async def async_step_user(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
+        """Handle the initial user step."""
         errors: dict[str, str] = {}
         if user_input is not None:
             host = user_input[CONF_HOST].strip().removeprefix("http://").rstrip("/")
@@ -94,7 +81,6 @@ class WledColorSyncConfigFlow(ConfigFlow, domain=DOMAIN):
 
             info = await async_get_info(self.hass, host)
             if info is None and not user_input.get(CONF_NUM_LEDS):
-                # Can't auto-detect LED count without the JSON API
                 errors["base"] = "cannot_connect"
             else:
                 name = user_input.pop(CONF_NAME, "") or (info or {}).get("name") or host
@@ -104,53 +90,84 @@ class WledColorSyncConfigFlow(ConfigFlow, domain=DOMAIN):
 
         return self.async_show_form(
             step_id="user",
-            data_schema=_device_schema(user_input or {}, include_host=True),
+            data_schema=self.add_suggested_values_to_schema(STEP_USER_DATA_SCHEMA, user_input or {}),
             errors=errors,
         )
 
     @staticmethod
     @callback
     def async_get_options_flow(config_entry: ConfigEntry) -> OptionsFlow:
+        """Get the options flow for this handler."""
         return WledColorSyncOptionsFlow()
 
 
 class WledColorSyncOptionsFlow(OptionsFlow):
-    """Options: source, protocol, LEDs and color tuning."""
+    """Handle options flow for WLED Media Color Sync."""
 
     async def async_step_init(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
+        """Manage the options."""
         if user_input is not None:
             user_input[CONF_PORT] = int(user_input.get(CONF_PORT) or 0)
             user_input[CONF_NUM_LEDS] = int(user_input.get(CONF_NUM_LEDS) or 0)
             user_input[CONF_PALETTE_SIZE] = int(user_input[CONF_PALETTE_SIZE])
             user_input[CONF_FPS] = int(user_input[CONF_FPS])
-            # Explicitly clear the source if removed in the form
             user_input.setdefault(CONF_SOURCE_ENTITY, None)
-            return self.async_create_entry(data=user_input)
+            return self.async_create_entry(title="", data=user_input)
 
-        cur = {**self.config_entry.data, **self.config_entry.options}
-        schema = _device_schema(cur, include_host=False).extend(
+        current_config = {**self.config_entry.data, **self.config_entry.options}
+        options_schema = vol.Schema(
             {
-                vol.Required(
-                    CONF_PALETTE_SIZE, default=cur.get(CONF_PALETTE_SIZE, DEFAULT_PALETTE_SIZE)
-                ): _box(1, 12, 1),
-                vol.Required(
-                    CONF_SATURATION_BOOST,
-                    default=cur.get(CONF_SATURATION_BOOST, DEFAULT_SATURATION_BOOST),
-                ): _box(0.5, 3.0, 0.05),
-                vol.Required(
-                    CONF_BRIGHTNESS_BOOST,
-                    default=cur.get(CONF_BRIGHTNESS_BOOST, DEFAULT_BRIGHTNESS_BOOST),
-                ): _box(0.5, 3.0, 0.05),
-                vol.Required(CONF_FPS, default=cur.get(CONF_FPS, DEFAULT_FPS)): _box(
-                    1, 60, 1, "fps"
+                vol.Optional(CONF_SOURCE_ENTITY): selector.EntitySelector(
+                    selector.EntitySelectorConfig(domain=["media_player", "image", "camera"])
+                ),
+                vol.Required(CONF_PROTOCOL, default=DEFAULT_PROTOCOL): selector.SelectSelector(
+                    selector.SelectSelectorConfig(
+                        options=PROTOCOL_OPTIONS,
+                        mode=selector.SelectSelectorMode.DROPDOWN,
+                    )
+                ),
+                vol.Optional(CONF_PORT, default=0): selector.NumberSelector(
+                    selector.NumberSelectorConfig(min=0, max=65535, mode=selector.NumberSelectorMode.BOX)
+                ),
+                vol.Optional(CONF_NUM_LEDS, default=DEFAULT_NUM_LEDS): selector.NumberSelector(
+                    selector.NumberSelectorConfig(min=0, max=4096, mode=selector.NumberSelectorMode.BOX)
                 ),
                 vol.Required(
-                    CONF_TRANSITION, default=cur.get(CONF_TRANSITION, DEFAULT_TRANSITION)
-                ): _box(0, 10, 0.1, "s"),
+                    CONF_PALETTE_SIZE, default=DEFAULT_PALETTE_SIZE
+                ): selector.NumberSelector(
+                    selector.NumberSelectorConfig(min=1, max=12, mode=selector.NumberSelectorMode.BOX)
+                ),
                 vol.Required(
-                    CONF_STOP_WHEN_IDLE,
-                    default=cur.get(CONF_STOP_WHEN_IDLE, DEFAULT_STOP_WHEN_IDLE),
+                    CONF_SATURATION_BOOST, default=DEFAULT_SATURATION_BOOST
+                ): selector.NumberSelector(
+                    selector.NumberSelectorConfig(
+                        min=0.5, max=3.0, step=0.05, mode=selector.NumberSelectorMode.BOX
+                    )
+                ),
+                vol.Required(
+                    CONF_BRIGHTNESS_BOOST, default=DEFAULT_BRIGHTNESS_BOOST
+                ): selector.NumberSelector(
+                    selector.NumberSelectorConfig(
+                        min=0.5, max=3.0, step=0.05, mode=selector.NumberSelectorMode.BOX
+                    )
+                ),
+                vol.Required(CONF_FPS, default=DEFAULT_FPS): selector.NumberSelector(
+                    selector.NumberSelectorConfig(
+                        min=1, max=60, mode=selector.NumberSelectorMode.BOX, unit_of_measurement="fps"
+                    )
+                ),
+                vol.Required(CONF_TRANSITION, default=DEFAULT_TRANSITION): selector.NumberSelector(
+                    selector.NumberSelectorConfig(
+                        min=0.0, max=10.0, step=0.1, mode=selector.NumberSelectorMode.BOX, unit_of_measurement="s"
+                    )
+                ),
+                vol.Required(
+                    CONF_STOP_WHEN_IDLE, default=DEFAULT_STOP_WHEN_IDLE
                 ): selector.BooleanSelector(),
             }
         )
-        return self.async_show_form(step_id="init", data_schema=schema)
+
+        return self.async_show_form(
+            step_id="init",
+            data_schema=self.add_suggested_values_to_schema(options_schema, current_config),
+        )
