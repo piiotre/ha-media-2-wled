@@ -30,7 +30,8 @@
           "protocol": "UDP protocol",
           "port": "UDP port (0 = protocol default)",
           "num_leds": "Number of LEDs (0 = auto-detect)",
-          "palette_size": "Number of colors to extract",
+          "palette_size": "Number of colors to extract (1-12)",
+          "gap_size": "Gap size (LEDs off between colors)",
           "saturation_boost": "Saturation boost",
           "brightness_boost": "Brightness boost",
           "fps": "Frames per second",
@@ -64,13 +65,16 @@
           "ambient": "Ambient drift",
           "chase": "Chase / flow",
           "twinkle": "Twinkle",
-          "breathe": "Breathe"
+          "breathe": "Breathe",
+          "gap_blocks": "Gap blocks"
         }
       }
     },
     "number": {
       "brightness": { "name": "Brightness" },
-      "speed": { "name": "Effect speed" }
+      "speed": { "name": "Effect speed" },
+      "palette_size": { "name": "Palette size" },
+      "gap_size": { "name": "Gap size" }
     },
     "sensor": {
       "dominant_color": { "name": "Dominant color" }

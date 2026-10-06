@@ -1,4 +1,4 @@
-"""Brightness and speed numbers."""
+"""Brightness, speed, palette size, and gap size number entities."""
 
 from __future__ import annotations
 
@@ -11,7 +11,14 @@ from .entity import WledColorSyncEntity
 
 async def async_setup_entry(hass: HomeAssistant, entry, async_add_entities: AddEntitiesCallback) -> None:
     engine = entry.runtime_data
-    async_add_entities([BrightnessNumber(engine, "brightness"), SpeedNumber(engine, "speed")])
+    async_add_entities(
+        [
+            BrightnessNumber(engine, "brightness"),
+            SpeedNumber(engine, "speed"),
+            PaletteSizeNumber(engine, "palette_size"),
+            GapSizeNumber(engine, "gap_size"),
+        ]
+    )
 
 
 class _EngineNumber(WledColorSyncEntity, RestoreNumber):
@@ -54,3 +61,29 @@ class SpeedNumber(_EngineNumber):
 
     def _apply(self, value: float) -> None:
         self.engine.set_speed(int(value))
+
+
+class PaletteSizeNumber(_EngineNumber):
+    _attr_native_min_value = 1
+    _attr_native_max_value = 12
+    _attr_icon = "mdi:palette-swatch"
+
+    @property
+    def native_value(self) -> float:
+        return self.engine.palette_size
+
+    def _apply(self, value: float) -> None:
+        self.engine.set_palette_size(int(value))
+
+
+class GapSizeNumber(_EngineNumber):
+    _attr_native_min_value = 0
+    _attr_native_max_value = 20
+    _attr_icon = "mdi:arrow-expand-horizontal"
+
+    @property
+    def native_value(self) -> float:
+        return self.engine.gap_size
+
+    def _apply(self, value: float) -> None:
+        self.engine.set_gap_size(int(value))

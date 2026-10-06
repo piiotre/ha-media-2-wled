@@ -13,6 +13,7 @@ from homeassistant.helpers import selector
 from .const import (
     CONF_BRIGHTNESS_BOOST,
     CONF_FPS,
+    CONF_GAP_SIZE,
     CONF_HOST,
     CONF_NAME,
     CONF_NUM_LEDS,
@@ -25,6 +26,7 @@ from .const import (
     CONF_TRANSITION,
     DEFAULT_BRIGHTNESS_BOOST,
     DEFAULT_FPS,
+    DEFAULT_GAP_SIZE,
     DEFAULT_NUM_LEDS,
     DEFAULT_PALETTE_SIZE,
     DEFAULT_PROTOCOL,
@@ -110,6 +112,7 @@ class WledColorSyncOptionsFlow(OptionsFlow):
             user_input[CONF_PORT] = int(user_input.get(CONF_PORT) or 0)
             user_input[CONF_NUM_LEDS] = int(user_input.get(CONF_NUM_LEDS) or 0)
             user_input[CONF_PALETTE_SIZE] = int(user_input[CONF_PALETTE_SIZE])
+            user_input[CONF_GAP_SIZE] = int(user_input[CONF_GAP_SIZE])
             user_input[CONF_FPS] = int(user_input[CONF_FPS])
             user_input.setdefault(CONF_SOURCE_ENTITY, None)
             return self.async_create_entry(title="", data=user_input)
@@ -136,6 +139,11 @@ class WledColorSyncOptionsFlow(OptionsFlow):
                     CONF_PALETTE_SIZE, default=DEFAULT_PALETTE_SIZE
                 ): selector.NumberSelector(
                     selector.NumberSelectorConfig(min=1, max=12, mode=selector.NumberSelectorMode.BOX)
+                ),
+                vol.Required(
+                    CONF_GAP_SIZE, default=DEFAULT_GAP_SIZE
+                ): selector.NumberSelector(
+                    selector.NumberSelectorConfig(min=0, max=20, mode=selector.NumberSelectorMode.BOX)
                 ),
                 vol.Required(
                     CONF_SATURATION_BOOST, default=DEFAULT_SATURATION_BOOST

@@ -22,6 +22,7 @@ from .const import (
     ACTIVE_MEDIA_STATES,
     CONF_BRIGHTNESS_BOOST,
     CONF_FPS,
+    CONF_GAP_SIZE,
     CONF_HOST,
     CONF_NUM_LEDS,
     CONF_PALETTE_SIZE,
@@ -35,6 +36,7 @@ from .const import (
     DEFAULT_BRIGHTNESS_BOOST,
     DEFAULT_EFFECT,
     DEFAULT_FPS,
+    DEFAULT_GAP_SIZE,
     DEFAULT_PALETTE_SIZE,
     DEFAULT_PORTS,
     DEFAULT_PROTOCOL,
@@ -124,6 +126,7 @@ class WledColorSyncEngine:
         self.num_leds = num_leds
         self.source_entity: str | None = cfg.get(CONF_SOURCE_ENTITY) or None
         self.palette_size: int = int(cfg.get(CONF_PALETTE_SIZE, DEFAULT_PALETTE_SIZE))
+        self.gap_size: int = int(cfg.get(CONF_GAP_SIZE, DEFAULT_GAP_SIZE))
         self.saturation_boost: float = cfg.get(CONF_SATURATION_BOOST, DEFAULT_SATURATION_BOOST)
         self.brightness_boost: float = cfg.get(CONF_BRIGHTNESS_BOOST, DEFAULT_BRIGHTNESS_BOOST)
         self.fps: int = int(cfg.get(CONF_FPS, DEFAULT_FPS))
@@ -211,6 +214,19 @@ class WledColorSyncEngine:
     @callback
     def set_speed(self, speed: int) -> None:
         self.speed = int(speed)
+        self._notify()
+
+    @callback
+    def set_palette_size(self, palette_size: int) -> None:
+        self.palette_size = max(1, min(12, int(palette_size)))
+        if self.source_entity:
+            self.hass.async_create_task(self.async_process_source(self.source_entity))
+        self._notify()
+
+    @callback
+    def set_gap_size(self, gap_size: int) -> None:
+        self.gap_size = max(0, min(20, int(gap_size)))
+        self._dirty = True
         self._notify()
 
     # ----------------------------------------------------------------- source handling
@@ -307,7 +323,12 @@ class WledColorSyncEngine:
             try:
                 if self.source_active and self.num_leds > 0:
                     frame = effects.render(
-                        self.effect, self.palette, self.num_leds, now - start, self.speed / 50
+                        self.effect,
+                        self.palette,
+                        self.num_leds,
+                        now - start,
+                        self.speed / 50,
+                        self.gap_size,
                     )
                     transitioning = False
                     if self._transition_from is not None:
@@ -339,4 +360,6 @@ class WledColorSyncEngine:
             "port": self.port,
             "protocol": self.protocol,
             "num_leds": self.num_leds,
+            "palette_size": self.palette_size,
+            "gap_size": self.gap_size,
         }
