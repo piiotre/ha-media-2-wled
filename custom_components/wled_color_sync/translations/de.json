@@ -1,0 +1,111 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "WLED Media Color Sync",
+        "description": "Geben Sie die IP-Adresse oder den Hostnamen Ihres WLED-Geräts ein. Die Einrichtung erkennt die LED-Anzahl automatisch und verwendet standardmäßig das DDP-Protokoll mit geringer Latenz.",
+        "data": {
+          "host": "WLED Host oder IP",
+          "name": "Name (optional)",
+          "source_entity": "Bildquelle (Media Player, Bild oder Kamera)"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "WLED konnte nicht erreicht werden, um die LED-Anzahl automatisch zu erkennen. Überprüfen Sie den Host oder die IP-Adresse."
+    },
+    "abort": {
+      "already_configured": "Dieses WLED-Gerät ist bereits konfiguriert."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Hardware- & Verhaltensoptionen",
+        "data": {
+          "source_entity": "Bildquelle (Media Player, Bild oder Kamera)",
+          "protocol": "UDP-Protokoll",
+          "port": "UDP-Port (0 = Protokoll-Standard)",
+          "num_leds": "Anzahl der LEDs (0 = Automatisch erkennen)",
+          "stop_when_idle": "Streaming stoppen, wenn Media Player inaktiv/aus ist"
+        }
+      }
+    }
+  },
+  "selector": {
+    "protocol": {
+      "options": {
+        "ddp": "DDP (Port 4048, empfohlen)",
+        "drgb": "DRGB / DNRGB (Port 21324)",
+        "drgbw": "DRGBW (Port 21324, RGBW-Strips, max. 367 LEDs)",
+        "warls": "WARLS (Port 21324, max. 255 LEDs)"
+      }
+    }
+  },
+  "entity": {
+    "switch": {
+      "sync": { "name": "Farbsynchronisation" }
+    },
+    "select": {
+      "effect": {
+        "name": "Effekt",
+        "state": {
+          "solid": "Einfarbig (Hauptfarbe)",
+          "gradient": "Farbverlauf",
+          "segments": "Segmente",
+          "ambient": "Ambient-Drift",
+          "chase": "Lauflicht / Flow",
+          "twinkle": "Funkeln",
+          "breathe": "Atmen",
+          "gap_blocks": "Lücken-Blöcke"
+        }
+      }
+    },
+    "number": {
+      "brightness": { "name": "Helligkeit" },
+      "speed": { "name": "Effektgeschwindigkeit" },
+      "palette_size": { "name": "Palettengröße" },
+      "gap_size": { "name": "Lückengröße" },
+      "saturation_boost": { "name": "Sättigungsverstärkung" },
+      "brightness_boost": { "name": "Helligkeitsverstärkung" },
+      "transition": { "name": "Übergangszeit" },
+      "fps": { "name": "FPS" }
+    },
+    "sensor": {
+      "dominant_color": { "name": "Dominante Farbe" },
+      "color_1": { "name": "Farbe 1" },
+      "color_2": { "name": "Farbe 2" },
+      "color_3": { "name": "Farbe 3" },
+      "color_4": { "name": "Farbe 4" },
+      "color_5": { "name": "Farbe 5" },
+      "color_6": { "name": "Farbe 6" },
+      "color_7": { "name": "Farbe 7" },
+      "color_8": { "name": "Farbe 8" },
+      "color_9": { "name": "Farbe 9" },
+      "color_10": { "name": "Farbe 10" },
+      "color_11": { "name": "Farbe 11" },
+      "color_12": { "name": "Farbe 12" }
+    },
+    "image": {
+      "palette_image": { "name": "Palettenbild" }
+    }
+  },
+  "services": {
+    "sync_image": {
+      "name": "Bild synchronisieren",
+      "description": "Extrahiert Farben aus einem Bild und sendet sie an ein WLED-Farbsynchronisationsgerät. Gibt die Palette zurück.",
+      "fields": {
+        "config_entry_id": { "name": "Gerät", "description": "Das WLED-Farbsynchronisationsgerät." },
+        "source": { "name": "Quelle", "description": "Entitäts-ID (media_player/image/camera), URL oder lokaler Dateipfad." }
+      }
+    },
+    "extract_colors": {
+      "name": "Farben extrahieren",
+      "description": "Extrahiert eine Farbpalette aus einem Bild und gibt sie zurück (ändert keine Lichter).",
+      "fields": {
+        "source": { "name": "Quelle", "description": "Entitäts-ID (media_player/image/camera), URL oder lokaler Dateipfad." },
+        "palette_size": { "name": "Palettengröße", "description": "Anzahl der zu extrahierenden Farben." }
+      }
+    }
+  }
+}
