@@ -1,0 +1,97 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "WLED Media Color Sync",
+        "description": "Stream colors extracted from a picture / album art to a WLED device over UDP.",
+        "data": {
+          "host": "WLED host or IP",
+          "name": "Name (optional)",
+          "source_entity": "Picture source (media player, image or camera)",
+          "protocol": "UDP protocol",
+          "port": "UDP port (0 = protocol default)",
+          "num_leds": "Number of LEDs (0 = auto-detect)"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Could not reach WLED to auto-detect the LED count. Check the host or enter the LED count manually."
+    },
+    "abort": {
+      "already_configured": "This WLED device is already configured."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Color sync options",
+        "data": {
+          "source_entity": "Picture source (media player, image or camera)",
+          "protocol": "UDP protocol",
+          "port": "UDP port (0 = protocol default)",
+          "num_leds": "Number of LEDs (0 = auto-detect)",
+          "palette_size": "Number of colors to extract",
+          "saturation_boost": "Saturation boost",
+          "brightness_boost": "Brightness boost",
+          "fps": "Frames per second",
+          "transition": "Transition time between palettes",
+          "stop_when_idle": "Stop streaming when the media player is idle/off"
+        }
+      }
+    }
+  },
+  "selector": {
+    "protocol": {
+      "options": {
+        "ddp": "DDP (port 4048, recommended)",
+        "drgb": "DRGB / DNRGB (port 21324)",
+        "drgbw": "DRGBW (port 21324, RGBW strips, max 367 LEDs)",
+        "warls": "WARLS (port 21324, max 255 LEDs)"
+      }
+    }
+  },
+  "entity": {
+    "switch": {
+      "sync": { "name": "Color sync" }
+    },
+    "select": {
+      "effect": {
+        "name": "Effect",
+        "state": {
+          "solid": "Solid (dominant color)",
+          "gradient": "Gradient",
+          "segments": "Segments",
+          "ambient": "Ambient drift",
+          "chase": "Chase / flow",
+          "twinkle": "Twinkle",
+          "breathe": "Breathe"
+        }
+      }
+    },
+    "number": {
+      "brightness": { "name": "Brightness" },
+      "speed": { "name": "Effect speed" }
+    },
+    "sensor": {
+      "dominant_color": { "name": "Dominant color" }
+    }
+  },
+  "services": {
+    "sync_image": {
+      "name": "Sync image",
+      "description": "Extract colors from an image and send them to a WLED color sync device. Returns the palette.",
+      "fields": {
+        "config_entry_id": { "name": "Device", "description": "The WLED color sync device." },
+        "source": { "name": "Source", "description": "Entity id (media_player/image/camera), URL, or local file path." }
+      }
+    },
+    "extract_colors": {
+      "name": "Extract colors",
+      "description": "Extract a color palette from an image and return it (does not change any lights).",
+      "fields": {
+        "source": { "name": "Source", "description": "Entity id (media_player/image/camera), URL, or local file path." },
+        "palette_size": { "name": "Palette size", "description": "Number of colors to extract." }
+      }
+    }
+  }
+}

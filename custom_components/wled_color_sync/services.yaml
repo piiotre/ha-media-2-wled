@@ -1,0 +1,27 @@
+sync_image:
+  fields:
+    config_entry_id:
+      required: true
+      selector:
+        config_entry:
+          integration: wled_color_sync
+    source:
+      required: true
+      example: "media_player.living_room"
+      selector:
+        text:
+
+extract_colors:
+  fields:
+    source:
+      required: true
+      example: "image.doorbell_snapshot"
+      selector:
+        text:
+    palette_size:
+      default: 5
+      selector:
+        number:
+          min: 1
+          max: 12
+          mode: box
