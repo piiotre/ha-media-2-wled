@@ -12,6 +12,7 @@ WLED device, rendered with animated effects and gap spacing.
   it covers, how saturated it is and how bright it is. That stops black
   backgrounds from taking over. Near-duplicate colors are merged, then
   saturation and brightness get a boost so the colors look right on LEDs.
+- **Palette Picture Output:** Automatically generates a `32px` high by `(32px * palette_size)` wide PNG image containing the detected colors left to right as 32x32px blocks.
 - **Gap Mode:** Insert configurable black / OFF LEDs between colors evenly across strip segments, moving chase blocks, or custom patterns.
 - **UDP protocols:** DDP (default, port 4048), DRGB (switches to DNRGB
   automatically on strips longer than 490 LEDs), DRGBW and WARLS (port 21324).
@@ -24,7 +25,8 @@ WLED device, rendered with animated effects and gap spacing.
   - `select` Effect
   - `number` Brightness, Effect speed, Palette size (1–12), and Gap size (0–20)
   - `sensor` Dominant color (with full palette attributes)
-  - `sensor` **Color 1** through **Color 12** (individual numbered hex & RGB palette sensors for easy automation binding)
+  - `sensor` **Color 1** through **Color 12** (individual numbered hex & RGB palette sensors)
+  - `image` **Palette picture** (`image.wled_palette_picture`, a 32x[32*N] px image of the extracted colors left to right)
 
 ## Installation (HACS)
 

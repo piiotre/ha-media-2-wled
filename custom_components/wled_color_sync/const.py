@@ -3,7 +3,7 @@
 DOMAIN = "wled_color_sync"
 MANUFACTURER = "WLED Media Color Sync"
 
-PLATFORMS = ["switch", "select", "number", "sensor"]
+PLATFORMS = ["switch", "select", "number", "sensor", "image"]
 
 # Config entry keys
 CONF_HOST = "host"

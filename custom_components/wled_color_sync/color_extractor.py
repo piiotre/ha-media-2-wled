@@ -10,7 +10,7 @@ import colorsys
 import io
 import logging
 
-from PIL import Image
+from PIL import Image, ImageDraw
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -73,6 +73,30 @@ def extract_palette(
         return list(FALLBACK_PALETTE)
 
     return [enhance_color(c, saturation_boost, brightness_boost) for c in selected]
+
+
+def generate_palette_image(
+    palette: list[RGB],
+    swatch_width: int = 32,
+    height: int = 32,
+) -> bytes:
+    """Generate a PNG image showing the detected palette colors left to right.
+
+    Height: 32px
+    Width: 32px * palette_size
+    """
+    if not palette:
+        palette = list(FALLBACK_PALETTE)
+    width = max(1, len(palette) * swatch_width)
+    img = Image.new("RGB", (width, height))
+    draw = ImageDraw.Draw(img)
+    for idx, color in enumerate(palette):
+        x1 = idx * swatch_width
+        x2 = (idx + 1) * swatch_width
+        draw.rectangle([x1, 0, x2, height], fill=color)
+    buf = io.BytesIO()
+    img.save(buf, format="PNG")
+    return buf.getvalue()
 
 
 def enhance_color(

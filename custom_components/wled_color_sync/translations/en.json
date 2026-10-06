@@ -90,6 +90,9 @@
       "color_10": { "name": "Color 10" },
       "color_11": { "name": "Color 11" },
       "color_12": { "name": "Color 12" }
+    },
+    "image": {
+      "palette_image": { "name": "Palette picture" }
     }
   },
   "services": {
