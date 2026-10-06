@@ -77,7 +77,19 @@
       "gap_size": { "name": "Gap size" }
     },
     "sensor": {
-      "dominant_color": { "name": "Dominant color" }
+      "dominant_color": { "name": "Dominant color" },
+      "color_1": { "name": "Color 1" },
+      "color_2": { "name": "Color 2" },
+      "color_3": { "name": "Color 3" },
+      "color_4": { "name": "Color 4" },
+      "color_5": { "name": "Color 5" },
+      "color_6": { "name": "Color 6" },
+      "color_7": { "name": "Color 7" },
+      "color_8": { "name": "Color 8" },
+      "color_9": { "name": "Color 9" },
+      "color_10": { "name": "Color 10" },
+      "color_11": { "name": "Color 11" },
+      "color_12": { "name": "Color 12" }
     }
   },
   "services": {

@@ -23,7 +23,8 @@ WLED device, rendered with animated effects and gap spacing.
   - `switch` Color sync
   - `select` Effect
   - `number` Brightness, Effect speed, Palette size (1–12), and Gap size (0–20)
-  - `sensor` Dominant color (the full palette is in its attributes)
+  - `sensor` Dominant color (with full palette attributes)
+  - `sensor` **Color 1** through **Color 12** (individual numbered hex & RGB palette sensors for easy automation binding)
 
 ## Installation (HACS)
 
