@@ -127,13 +127,13 @@ class WledColorSyncEngine:
         self.source_entity: str | None = cfg.get(CONF_SOURCE_ENTITY) or None
         self.palette_size: int = int(cfg.get(CONF_PALETTE_SIZE, DEFAULT_PALETTE_SIZE))
         self.gap_size: int = int(cfg.get(CONF_GAP_SIZE, DEFAULT_GAP_SIZE))
-        self.saturation_boost: float = cfg.get(CONF_SATURATION_BOOST, DEFAULT_SATURATION_BOOST)
-        self.brightness_boost: float = cfg.get(CONF_BRIGHTNESS_BOOST, DEFAULT_BRIGHTNESS_BOOST)
+        self.saturation_boost: float = float(cfg.get(CONF_SATURATION_BOOST, DEFAULT_SATURATION_BOOST))
+        self.brightness_boost: float = float(cfg.get(CONF_BRIGHTNESS_BOOST, DEFAULT_BRIGHTNESS_BOOST))
         self.fps: int = int(cfg.get(CONF_FPS, DEFAULT_FPS))
         self.transition: float = float(cfg.get(CONF_TRANSITION, DEFAULT_TRANSITION))
         self.stop_when_idle: bool = cfg.get(CONF_STOP_WHEN_IDLE, DEFAULT_STOP_WHEN_IDLE)
 
-        # Runtime state (controlled by entities)
+        # Runtime state (controlled dynamically by entities)
         self.enabled = True
         self.effect = DEFAULT_EFFECT
         self.brightness = DEFAULT_BRIGHTNESS
@@ -189,7 +189,7 @@ class WledColorSyncEngine:
         for listener in list(self._listeners):
             listener()
 
-    # ----------------------------------------------------------------- controls
+    # ----------------------------------------------------------------- dynamic controls
     async def async_set_enabled(self, enabled: bool) -> None:
         self.enabled = enabled
         if enabled:
@@ -226,6 +226,31 @@ class WledColorSyncEngine:
     @callback
     def set_gap_size(self, gap_size: int) -> None:
         self.gap_size = max(0, min(20, int(gap_size)))
+        self._dirty = True
+        self._notify()
+
+    @callback
+    def set_saturation_boost(self, saturation_boost: float) -> None:
+        self.saturation_boost = max(0.5, min(3.0, float(saturation_boost)))
+        if self.source_entity:
+            self.hass.async_create_task(self.async_process_source(self.source_entity))
+        self._notify()
+
+    @callback
+    def set_brightness_boost(self, brightness_boost: float) -> None:
+        self.brightness_boost = max(0.5, min(3.0, float(brightness_boost)))
+        if self.source_entity:
+            self.hass.async_create_task(self.async_process_source(self.source_entity))
+        self._notify()
+
+    @callback
+    def set_transition(self, transition: float) -> None:
+        self.transition = max(0.0, min(10.0, float(transition)))
+        self._notify()
+
+    @callback
+    def set_fps(self, fps: int) -> None:
+        self.fps = max(1, min(60, int(fps)))
         self._dirty = True
         self._notify()
 
@@ -317,8 +342,8 @@ class WledColorSyncEngine:
         loop = self.hass.loop
         start = loop.time()
         last_send = 0.0
-        interval = 1 / max(1, self.fps)
         while True:
+            interval = 1 / max(1, self.fps)
             now = loop.time()
             try:
                 if self.source_active and self.num_leds > 0:
@@ -362,4 +387,8 @@ class WledColorSyncEngine:
             "num_leds": self.num_leds,
             "palette_size": self.palette_size,
             "gap_size": self.gap_size,
+            "saturation_boost": self.saturation_boost,
+            "brightness_boost": self.brightness_boost,
+            "transition": self.transition,
+            "fps": self.fps,
         }

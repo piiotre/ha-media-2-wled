@@ -6,8 +6,8 @@ WLED device, rendered with animated effects and gap spacing.
 
 ## Features
 
-- **Sources:** `media_player` album art, `image` entities, `camera` entities,
-  HTTP(S) URLs and local files (the folder must be in `allowlist_external_dirs`).
+- **Setupless Setup:** Just type in your WLED IP or hostname! The integration auto-detects your strip's LED count via WLED's API and sets up DDP protocol automatically.
+- **Dynamic Control Sliders (100% Live):** Adjust Brightness, Effect Speed, Palette Size (1–12), Gap Size (0–20), Saturation Boost (0.5–3.0), Brightness Boost (0.5–3.0), Transition Time (0–10s), and FPS (1–60) live on your dashboard without reopening setup dialogs.
 - **Smart palette extraction (1–12 main colors):** each color is scored by how much of the picture
   it covers, how saturated it is and how bright it is. That stops black
   backgrounds from taking over. Near-duplicate colors are merged, then
@@ -23,7 +23,7 @@ WLED device, rendered with animated effects and gap spacing.
 - **Entities created per device:**
   - `switch` Color sync
   - `select` Effect
-  - `number` Brightness, Effect speed, Palette size (1–12), and Gap size (0–20)
+  - `number` **Brightness**, **Effect speed**, **Palette size** (1–12), **Gap size** (0–20), **Saturation boost** (0.5–3.0), **Brightness boost** (0.5–3.0), **Transition time** (0–10s), and **FPS** (1–60)
   - `sensor` Dominant color (with full palette attributes)
   - `sensor` **Color 1** through **Color 12** (individual numbered hex & RGB palette sensors)
   - `image` **Palette picture** (`image.wled_palette_picture`, a 32x[32*N] px image of the extracted colors left to right)
@@ -41,13 +41,7 @@ Manual install: copy `custom_components/wled_color_sync` into your `config/custo
 | Field | Notes |
 |---|---|
 | Host | IP address or hostname of the WLED device |
-| Picture source | media_player / image / camera entity (optional, you can also use the services) |
-| Protocol | DDP is recommended |
-| Port | 0 = use the protocol's default port |
-| LEDs | 0 = read the count from WLED automatically |
-
-The options let you tune palette size, gap size, saturation/brightness boost, FPS,
-transition time and stop-when-idle.
+| Picture source | media_player / image / camera entity (optional, can also be passed in services) |
 
 > In WLED, check that *Settings → Sync Interfaces → Realtime → Receive UDP realtime* is enabled.
 

@@ -3,19 +3,16 @@
     "step": {
       "user": {
         "title": "WLED Media Color Sync",
-        "description": "Stream colors extracted from a picture / album art to a WLED device over UDP.",
+        "description": "Enter your WLED device IP or hostname. Setup auto-detects LED count and defaults to low-latency DDP protocol.",
         "data": {
           "host": "WLED host or IP",
           "name": "Name (optional)",
-          "source_entity": "Picture source (media player, image or camera)",
-          "protocol": "UDP protocol",
-          "port": "UDP port (0 = protocol default)",
-          "num_leds": "Number of LEDs (0 = auto-detect)"
+          "source_entity": "Picture source (media player, image or camera)"
         }
       }
     },
     "error": {
-      "cannot_connect": "Could not reach WLED to auto-detect the LED count. Check the host or enter the LED count manually."
+      "cannot_connect": "Could not reach WLED to auto-detect the LED count. Check the host or enter the IP address."
     },
     "abort": {
       "already_configured": "This WLED device is already configured."
@@ -24,18 +21,12 @@
   "options": {
     "step": {
       "init": {
-        "title": "Color sync options",
+        "title": "Hardware & behavior options",
         "data": {
           "source_entity": "Picture source (media player, image or camera)",
           "protocol": "UDP protocol",
           "port": "UDP port (0 = protocol default)",
           "num_leds": "Number of LEDs (0 = auto-detect)",
-          "palette_size": "Number of colors to extract (1-12)",
-          "gap_size": "Gap size (LEDs off between colors)",
-          "saturation_boost": "Saturation boost",
-          "brightness_boost": "Brightness boost",
-          "fps": "Frames per second",
-          "transition": "Transition time between palettes",
           "stop_when_idle": "Stop streaming when the media player is idle/off"
         }
       }
@@ -74,7 +65,11 @@
       "brightness": { "name": "Brightness" },
       "speed": { "name": "Effect speed" },
       "palette_size": { "name": "Palette size" },
-      "gap_size": { "name": "Gap size" }
+      "gap_size": { "name": "Gap size" },
+      "saturation_boost": { "name": "Saturation boost" },
+      "brightness_boost": { "name": "Brightness boost" },
+      "transition": { "name": "Transition time" },
+      "fps": { "name": "FPS" }
     },
     "sensor": {
       "dominant_color": { "name": "Dominant color" },

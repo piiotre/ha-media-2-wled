@@ -1,4 +1,4 @@
-"""Brightness, speed, palette size, and gap size number entities."""
+"""Dynamic number entities for WLED Media Color Sync tuning."""
 
 from __future__ import annotations
 
@@ -17,13 +17,16 @@ async def async_setup_entry(hass: HomeAssistant, entry, async_add_entities: AddE
             SpeedNumber(engine, "speed"),
             PaletteSizeNumber(engine, "palette_size"),
             GapSizeNumber(engine, "gap_size"),
+            SaturationBoostNumber(engine, "saturation_boost"),
+            BrightnessBoostNumber(engine, "brightness_boost"),
+            TransitionTimeNumber(engine, "transition"),
+            FpsNumber(engine, "fps"),
         ]
     )
 
 
 class _EngineNumber(WledColorSyncEntity, RestoreNumber):
     _attr_mode = NumberMode.SLIDER
-    _attr_native_step = 1
 
     async def async_added_to_hass(self) -> None:
         await super().async_added_to_hass()
@@ -40,6 +43,7 @@ class _EngineNumber(WledColorSyncEntity, RestoreNumber):
 class BrightnessNumber(_EngineNumber):
     _attr_native_min_value = 0
     _attr_native_max_value = 255
+    _attr_native_step = 1
     _attr_icon = "mdi:brightness-6"
 
     @property
@@ -53,6 +57,7 @@ class BrightnessNumber(_EngineNumber):
 class SpeedNumber(_EngineNumber):
     _attr_native_min_value = 1
     _attr_native_max_value = 100
+    _attr_native_step = 1
     _attr_icon = "mdi:speedometer"
 
     @property
@@ -66,6 +71,7 @@ class SpeedNumber(_EngineNumber):
 class PaletteSizeNumber(_EngineNumber):
     _attr_native_min_value = 1
     _attr_native_max_value = 12
+    _attr_native_step = 1
     _attr_icon = "mdi:palette-swatch"
 
     @property
@@ -79,6 +85,7 @@ class PaletteSizeNumber(_EngineNumber):
 class GapSizeNumber(_EngineNumber):
     _attr_native_min_value = 0
     _attr_native_max_value = 20
+    _attr_native_step = 1
     _attr_icon = "mdi:arrow-expand-horizontal"
 
     @property
@@ -87,3 +94,61 @@ class GapSizeNumber(_EngineNumber):
 
     def _apply(self, value: float) -> None:
         self.engine.set_gap_size(int(value))
+
+
+class SaturationBoostNumber(_EngineNumber):
+    _attr_native_min_value = 0.5
+    _attr_native_max_value = 3.0
+    _attr_native_step = 0.05
+    _attr_icon = "mdi:palette-advanced"
+
+    @property
+    def native_value(self) -> float:
+        return self.engine.saturation_boost
+
+    def _apply(self, value: float) -> None:
+        self.engine.set_saturation_boost(value)
+
+
+class BrightnessBoostNumber(_EngineNumber):
+    _attr_native_min_value = 0.5
+    _attr_native_max_value = 3.0
+    _attr_native_step = 0.05
+    _attr_icon = "mdi:brightness-auto"
+
+    @property
+    def native_value(self) -> float:
+        return self.engine.brightness_boost
+
+    def _apply(self, value: float) -> None:
+        self.engine.set_brightness_boost(value)
+
+
+class TransitionTimeNumber(_EngineNumber):
+    _attr_native_min_value = 0.0
+    _attr_native_max_value = 10.0
+    _attr_native_step = 0.1
+    _attr_native_unit_of_measurement = "s"
+    _attr_icon = "mdi:timer-sand"
+
+    @property
+    def native_value(self) -> float:
+        return self.engine.transition
+
+    def _apply(self, value: float) -> None:
+        self.engine.set_transition(value)
+
+
+class FpsNumber(_EngineNumber):
+    _attr_native_min_value = 1
+    _attr_native_max_value = 60
+    _attr_native_step = 1
+    _attr_native_unit_of_measurement = "fps"
+    _attr_icon = "mdi:filmstrip"
+
+    @property
+    def native_value(self) -> float:
+        return self.engine.fps
+
+    def _apply(self, value: float) -> None:
+        self.engine.set_fps(int(value))

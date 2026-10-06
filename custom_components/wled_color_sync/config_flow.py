@@ -11,28 +11,16 @@ from homeassistant.core import callback
 from homeassistant.helpers import selector
 
 from .const import (
-    CONF_BRIGHTNESS_BOOST,
-    CONF_FPS,
-    CONF_GAP_SIZE,
     CONF_HOST,
     CONF_NAME,
     CONF_NUM_LEDS,
-    CONF_PALETTE_SIZE,
     CONF_PORT,
     CONF_PROTOCOL,
-    CONF_SATURATION_BOOST,
     CONF_SOURCE_ENTITY,
     CONF_STOP_WHEN_IDLE,
-    CONF_TRANSITION,
-    DEFAULT_BRIGHTNESS_BOOST,
-    DEFAULT_FPS,
-    DEFAULT_GAP_SIZE,
     DEFAULT_NUM_LEDS,
-    DEFAULT_PALETTE_SIZE,
     DEFAULT_PROTOCOL,
-    DEFAULT_SATURATION_BOOST,
     DEFAULT_STOP_WHEN_IDLE,
-    DEFAULT_TRANSITION,
     DOMAIN,
 )
 from .wled_api import async_get_info
@@ -44,6 +32,7 @@ PROTOCOL_OPTIONS = [
     selector.SelectOptionDict(value="warls", label="WARLS (port 21324, max 255 LEDs)"),
 ]
 
+# Setupless initial schema: Only WLED host/IP and optional media source
 STEP_USER_DATA_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_HOST): selector.TextSelector(),
@@ -51,29 +40,17 @@ STEP_USER_DATA_SCHEMA = vol.Schema(
         vol.Optional(CONF_SOURCE_ENTITY): selector.EntitySelector(
             selector.EntitySelectorConfig(domain=["media_player", "image", "camera"])
         ),
-        vol.Required(CONF_PROTOCOL, default=DEFAULT_PROTOCOL): selector.SelectSelector(
-            selector.SelectSelectorConfig(
-                options=PROTOCOL_OPTIONS,
-                mode=selector.SelectSelectorMode.DROPDOWN,
-            )
-        ),
-        vol.Optional(CONF_PORT, default=0): selector.NumberSelector(
-            selector.NumberSelectorConfig(min=0, max=65535, mode=selector.NumberSelectorMode.BOX)
-        ),
-        vol.Optional(CONF_NUM_LEDS, default=DEFAULT_NUM_LEDS): selector.NumberSelector(
-            selector.NumberSelectorConfig(min=0, max=4096, mode=selector.NumberSelectorMode.BOX)
-        ),
     }
 )
 
 
 class WledColorSyncConfigFlow(ConfigFlow, domain=DOMAIN):
-    """Handle a config flow for WLED Media Color Sync."""
+    """Setupless config flow for WLED Media Color Sync."""
 
     VERSION = 1
 
     async def async_step_user(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
-        """Handle the initial user step."""
+        """Handle the initial user step - minimal setup!"""
         errors: dict[str, str] = {}
         if user_input is not None:
             host = user_input[CONF_HOST].strip().removeprefix("http://").rstrip("/")
@@ -88,6 +65,7 @@ class WledColorSyncConfigFlow(ConfigFlow, domain=DOMAIN):
                 name = user_input.pop(CONF_NAME, "") or (info or {}).get("name") or host
                 user_input[CONF_PORT] = int(user_input.get(CONF_PORT) or 0)
                 user_input[CONF_NUM_LEDS] = int(user_input.get(CONF_NUM_LEDS) or 0)
+                user_input[CONF_PROTOCOL] = DEFAULT_PROTOCOL
                 return self.async_create_entry(title=name, data=user_input)
 
         return self.async_show_form(
@@ -104,16 +82,13 @@ class WledColorSyncConfigFlow(ConfigFlow, domain=DOMAIN):
 
 
 class WledColorSyncOptionsFlow(OptionsFlow):
-    """Handle options flow for WLED Media Color Sync."""
+    """Handle options flow for hardware & behavior options."""
 
     async def async_step_init(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
-        """Manage the options."""
+        """Manage hardware/protocol options."""
         if user_input is not None:
             user_input[CONF_PORT] = int(user_input.get(CONF_PORT) or 0)
             user_input[CONF_NUM_LEDS] = int(user_input.get(CONF_NUM_LEDS) or 0)
-            user_input[CONF_PALETTE_SIZE] = int(user_input[CONF_PALETTE_SIZE])
-            user_input[CONF_GAP_SIZE] = int(user_input[CONF_GAP_SIZE])
-            user_input[CONF_FPS] = int(user_input[CONF_FPS])
             user_input.setdefault(CONF_SOURCE_ENTITY, None)
             return self.async_create_entry(title="", data=user_input)
 
@@ -134,40 +109,6 @@ class WledColorSyncOptionsFlow(OptionsFlow):
                 ),
                 vol.Optional(CONF_NUM_LEDS, default=DEFAULT_NUM_LEDS): selector.NumberSelector(
                     selector.NumberSelectorConfig(min=0, max=4096, mode=selector.NumberSelectorMode.BOX)
-                ),
-                vol.Required(
-                    CONF_PALETTE_SIZE, default=DEFAULT_PALETTE_SIZE
-                ): selector.NumberSelector(
-                    selector.NumberSelectorConfig(min=1, max=12, mode=selector.NumberSelectorMode.BOX)
-                ),
-                vol.Required(
-                    CONF_GAP_SIZE, default=DEFAULT_GAP_SIZE
-                ): selector.NumberSelector(
-                    selector.NumberSelectorConfig(min=0, max=20, mode=selector.NumberSelectorMode.BOX)
-                ),
-                vol.Required(
-                    CONF_SATURATION_BOOST, default=DEFAULT_SATURATION_BOOST
-                ): selector.NumberSelector(
-                    selector.NumberSelectorConfig(
-                        min=0.5, max=3.0, step=0.05, mode=selector.NumberSelectorMode.BOX
-                    )
-                ),
-                vol.Required(
-                    CONF_BRIGHTNESS_BOOST, default=DEFAULT_BRIGHTNESS_BOOST
-                ): selector.NumberSelector(
-                    selector.NumberSelectorConfig(
-                        min=0.5, max=3.0, step=0.05, mode=selector.NumberSelectorMode.BOX
-                    )
-                ),
-                vol.Required(CONF_FPS, default=DEFAULT_FPS): selector.NumberSelector(
-                    selector.NumberSelectorConfig(
-                        min=1, max=60, mode=selector.NumberSelectorMode.BOX, unit_of_measurement="fps"
-                    )
-                ),
-                vol.Required(CONF_TRANSITION, default=DEFAULT_TRANSITION): selector.NumberSelector(
-                    selector.NumberSelectorConfig(
-                        min=0.0, max=10.0, step=0.1, mode=selector.NumberSelectorMode.BOX, unit_of_measurement="s"
-                    )
                 ),
                 vol.Required(
                     CONF_STOP_WHEN_IDLE, default=DEFAULT_STOP_WHEN_IDLE
