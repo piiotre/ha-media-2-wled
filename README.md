@@ -4,6 +4,13 @@ Pull the main colors out of a picture (album art, an `image` entity, a camera
 snapshot, a URL or a local file) and stream them **in real time over UDP** to a
 WLED device, rendered with animated effects and gap spacing.
 
+<p align="center" width="100%">
+    <img width="45%" src="palette extraction.png">
+</p>
+<p align="center" width="100%">
+    <img width="45%" src="gradient.png">
+</p>
+
 ## Features
 
 - **Setupless Setup:** Just type in your WLED IP or hostname! The integration auto-detects your strip's LED count via WLED's API and sets up DDP protocol automatically.
